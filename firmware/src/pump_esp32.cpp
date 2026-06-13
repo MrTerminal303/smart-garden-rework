@@ -140,17 +140,19 @@ void publishStatus() {
   char topic[64], payload[256];
   snprintf(topic, sizeof(topic), TOPIC_PUMP_STATUS, DEVICE_CODE);
 
+  uint32_t now = millis();
   uint32_t remaining = 0;
   if (_pumpRunning && _pumpDuration > 0) {
-    uint32_t elapsed = (millis() - _pumpStartTime) / 1000;
+    uint32_t elapsed = (now - _pumpStartTime) / 1000;
     remaining = _pumpDuration - min(elapsed, _pumpDuration);
   }
 
   snprintf(payload, sizeof(payload),
-    "{\"running\":%s,\"remaining\":%u,\"cmd_id\":\"%s\"}",
+    "{\"running\":%s,\"remaining\":%u,\"cmd_id\":\"%s\",\"ts\":%lu}",
     _pumpRunning ? "true" : "false",
     remaining,
-    _currentCmdId[0] ? _currentCmdId : "");
+    _currentCmdId[0] ? _currentCmdId : "",
+    now);
 
   _mqtt->publish(topic, payload, true);  // retained
   Serial.printf("[MQTT] Status: %s\n", payload);
