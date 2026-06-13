@@ -50,4 +50,19 @@ router.get('/status', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/events', async (req: Request, res: Response) => {
+  const { device = 'PUMP_001' } = req.query as { device?: string };
+
+  try {
+    const result = await query(
+      'SELECT * FROM pump_events WHERE device_code = $1 ORDER BY created_at DESC LIMIT 20',
+      [device]
+    );
+    res.json(result.rows);
+  } catch (error) {
+    console.error('[Pump] getEvents error:', error);
+    res.status(500).json({ error: 'Failed to fetch pump events' });
+  }
+});
+
 export default router;
