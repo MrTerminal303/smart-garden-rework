@@ -18,7 +18,6 @@ public:
   void disconnect();
   void reconnect();
   bool publish(const char* topic, const char* payload, bool retained = false);
-  bool publish(const char* topic, const char* payload, uint8_t qos, bool retained = false);
   bool subscribe(const char* topic, uint8_t qos = 0);
   void loop();
   bool isConnected() { return _client.connected(); }
@@ -27,7 +26,10 @@ public:
   PubSubClient& getClient() { return _client; }
 
 private:
-  // Use WiFiClientSecure for TLS (HiveMQ Cloud), WiFiClient for plain TCP (local Mosquitto)
+  // IMPORTANT: _wifiClient MUST be declared BEFORE _client.
+  // PubSubClient stores a reference to it at construction, and C++ initializes
+  // members in declaration order (not initializer-list order).
+  // Forward declaration order: _wifiClient → _client → rest.
 #ifndef MQTT_USE_TLS
   WiFiClient _wifiClient;
 #else

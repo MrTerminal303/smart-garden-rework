@@ -5,6 +5,7 @@ MqttManager::MqttManager(const char* deviceCode)
   strncpy(_deviceCode, deviceCode, sizeof(_deviceCode) - 1);
   _deviceCode[sizeof(_deviceCode) - 1] = '\0';
 
+  _client.setServer(MQTT_BROKER, MQTT_PORT);
   _client.setBufferSize(MQTT_BUFFER_SIZE);
   _client.setKeepAlive(15);
 
@@ -60,10 +61,6 @@ void MqttManager::reconnect() {
 }
 
 bool MqttManager::publish(const char* topic, const char* payload, bool retained) {
-  return publish(topic, payload, QOS_TELEMETRY, retained);
-}
-
-bool MqttManager::publish(const char* topic, const char* payload, uint8_t qos, bool retained) {
   if (!_client.connected()) {
     reconnect();
     if (!_client.connected()) return false;

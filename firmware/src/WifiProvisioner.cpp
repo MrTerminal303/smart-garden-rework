@@ -132,7 +132,7 @@ void WifiProvisioner::handleProvisioning() {
 // ── Credentials storage ───────────────────────────────────────────────────────
 
 bool WifiProvisioner::saveCredentials(const char* ssid, const char* password) {
-  _prefs.begin("smartgarden-wifi", false);
+  _prefs.begin("sg-wifi", false);
   bool ok = _prefs.putString("ssid", ssid) > 0
          && _prefs.putString("password", password) > 0;
   _prefs.end();
@@ -146,7 +146,7 @@ bool WifiProvisioner::saveCredentials(const char* ssid, const char* password) {
 }
 
 void WifiProvisioner::clearCredentials() {
-  _prefs.begin("smartgarden-wifi", false);
+  _prefs.begin("sg-wifi", false);
   _prefs.clear();
   _prefs.end();
   _ssid = "";
@@ -167,7 +167,7 @@ bool WifiProvisioner::triggerReset() {
 // ── Private helpers ───────────────────────────────────────────────────────────
 
 bool WifiProvisioner::loadFromStorage() {
-  _prefs.begin("smartgarden-wifi", true);
+  _prefs.begin("sg-wifi", true);
   _ssid = _prefs.getString("ssid", "");
   _password = _prefs.getString("password", "");
   _prefs.end();
