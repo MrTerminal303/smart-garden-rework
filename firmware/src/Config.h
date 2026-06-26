@@ -64,7 +64,7 @@
 #define TOPIC_PUMP_ACK      "smartgarden/%s/pump/ack"
 #define TOPIC_PUMP_COMMAND  "smartgarden/%s/pump/command"
 #define TOPIC_RESET_COMMAND "smartgarden/%s/reset/command"
-#define TOPIC_HEARTBEAT     "smartgarden/%s/heartbeat"
+#define TOPIC_HEARTBEAT     "smartgarden/%s/device/heartbeat"
 #define TOPIC_LWT           "smartgarden/%s/lwt"
 #define TOPIC_PROVISION_WIFI "smartgarden/provision/wifi"
 

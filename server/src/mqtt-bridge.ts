@@ -127,6 +127,14 @@ export async function handleMessage(topic: string, payload: Buffer): Promise<voi
     case 'heartbeat':
       await handleHeartbeatMessage(deviceCode, data);
       break;
+    case 'lwt':
+      // Last Will Testament — device disconnection
+      console.log(`[MQTT] LWT: ${deviceCode} went offline`);
+      await query(
+        'UPDATE devices SET is_active = false, last_seen = NOW() WHERE device_code = $1',
+        [deviceCode]
+      ).catch(err => console.error('[MQTT] LWT update error:', err));
+      break;
     default:
       break;
   }

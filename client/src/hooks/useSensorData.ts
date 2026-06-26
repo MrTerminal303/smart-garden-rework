@@ -18,6 +18,9 @@ export interface DeviceInfo {
   is_active: boolean;
   last_seen: string | null;
   created_at: string;
+  ip_address?: string | null;
+  rssi?: number | null;
+  uptime?: number | null;
 }
 
 export interface SensorStateWithHistory extends SensorState {
@@ -260,4 +263,4 @@ export function useSensorData() {
   }, []);
 
   return { ...state, range, setRange };
-}
+}

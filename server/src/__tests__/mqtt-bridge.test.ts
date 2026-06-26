@@ -1,22 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { query } from '../db.js';
+
+// vi.mock is hoisted to top of file — use vi.hoisted for the factory
+const mockQuery = vi.hoisted(() => vi.fn());
+
+vi.mock('../db.js', () => ({ query: mockQuery }));
+
 import { handleMessage, setBroadcast } from '../mqtt-bridge.js';
 
 const broadcastCalls: Array<{ event: string; data: unknown }> = [];
-vi.stubGlobal('broadcast', (event: string, data: unknown) => {
-  broadcastCalls.push({ event, data });
-});
-
-// Mock the query function to track calls
-vi.mock('../db.js', () => ({
-  query: vi.fn(),
-}));
 
 beforeEach(() => {
   vi.clearAllMocks();
   broadcastCalls.length = 0;
   // Default: successful insert
-  (query as ReturnType<typeof vi.fn>).mockResolvedValue({ rows: [] });
+  mockQuery.mockResolvedValue({ rows: [] });
   setBroadcast((event, data) => {
     broadcastCalls.push({ event, data });
   });
@@ -27,21 +24,21 @@ describe('MQTT bridge message handling', () => {
     await expect(
       handleMessage('smartgarden/SENSOR_001/sensor/weather', Buffer.from('not json'))
     ).resolves.not.toThrow();
-    expect(query).not.toHaveBeenCalled();
+    expect(mockQuery).not.toHaveBeenCalled();
   });
 
   it('ignores unknown topic prefixes', async () => {
     await expect(
       handleMessage('otherprefix/SENSOR_001/sensor/weather', Buffer.from('{}'))
     ).resolves.not.toThrow();
-    expect(query).not.toHaveBeenCalled();
+    expect(mockQuery).not.toHaveBeenCalled();
   });
 
   it('ignores topics with fewer than 3 parts', async () => {
     await expect(
       handleMessage('smartgarden/SENSOR_001', Buffer.from('{}'))
     ).resolves.not.toThrow();
-    expect(query).not.toHaveBeenCalled();
+    expect(mockQuery).not.toHaveBeenCalled();
   });
 
   it('handles weather sensor message and broadcasts via SSE', async () => {
@@ -50,7 +47,7 @@ describe('MQTT bridge message handling', () => {
       Buffer.from(JSON.stringify({ temp: 25.5, humidity: 65, rain: 0, ts: Date.now() }))
     );
 
-    expect(query).toHaveBeenCalledWith(
+    expect(mockQuery).toHaveBeenCalledWith(
       expect.stringContaining('INSERT INTO sensor_data'),
       expect.arrayContaining(['SENSOR_001', 25.5, 65, 0])
     );
@@ -65,7 +62,7 @@ describe('MQTT bridge message handling', () => {
       Buffer.from(JSON.stringify({ moisture: 45, ts: Date.now() }))
     );
 
-    expect(query).toHaveBeenCalledWith(
+    expect(mockQuery).toHaveBeenCalledWith(
       expect.stringContaining('INSERT INTO sensor_data'),
       expect.arrayContaining(['SENSOR_001', 45])
     );
@@ -75,7 +72,7 @@ describe('MQTT bridge message handling', () => {
   });
 
   it('does not broadcast when query fails', async () => {
-    (query as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('insert failed'));
+    mockQuery.mockRejectedValue(new Error('insert failed'));
 
     await handleMessage(
       'smartgarden/SENSOR_001/sensor/weather',
@@ -91,7 +88,7 @@ describe('MQTT bridge message handling', () => {
       Buffer.from(JSON.stringify({ hours: 4.5, confidence: 0.85 }))
     );
 
-    expect(query).toHaveBeenCalledWith(
+    expect(mockQuery).toHaveBeenCalledWith(
       expect.stringContaining('INSERT INTO ai_predictions'),
       expect.arrayContaining(['SENSOR_001', 4.5, 0.85])
     );
@@ -106,7 +103,7 @@ describe('MQTT bridge message handling', () => {
       Buffer.from(JSON.stringify({ running: true, remaining: 60, ts: Date.now() }))
     );
 
-    expect(query).toHaveBeenCalledWith(
+    expect(mockQuery).toHaveBeenCalledWith(
       expect.stringContaining('INSERT INTO pump_status'),
       expect.arrayContaining(['PUMP_001', true, 60])
     );
@@ -121,7 +118,7 @@ describe('MQTT bridge message handling', () => {
       Buffer.from(JSON.stringify({ uptime: 3600, rssi: -45 }))
     );
 
-    expect(query).toHaveBeenCalledWith(
+    expect(mockQuery).toHaveBeenCalledWith(
       expect.stringContaining('UPDATE devices'),
       expect.arrayContaining(['SENSOR_001'])
     );
